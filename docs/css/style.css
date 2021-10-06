@@ -15,10 +15,6 @@ main {
     height: 100%;
 }
 
-body {
-    overflow: hidden;
-}
-
 main {
     padding-top: 6px;
     text-align: center;
@@ -35,4 +31,16 @@ input[type='checkbox'] {
 
 input[type='checkbox']:checked {
     background: var(--clr-checked);
+}
+
+button {
+    position: absolute;
+}
+
+button:nth-child(2) {
+    margin-left: 45px;
+}
+
+button:nth-child(3) {
+    margin-left: 80px;
 }
