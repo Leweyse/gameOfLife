@@ -1,58 +1,83 @@
-const main = document.querySelector('.content');
-
 let numRows = 25;
 let numColumns = 52;
 
-for (let row = 0; row < numRows; row++) {
-    for (let column = 0; column < numColumns; column++) {
-        const input = document.createElement('input')
-        input.setAttribute('type', 'checkbox');
-        input.classList.add('elem');
-        input.classList.add(`r${row % numRows}-c${column % numColumns}`);
-        main.appendChild(input)
+const createCells = () => {
+    const main = document.querySelector('.content');
+
+    for (let row = 0; row < numRows - 1; row++) {
+        for (let column = 0; column < numColumns - 1; column++) {
+            const input = document.createElement('input')
+            input.setAttribute('type', 'checkbox');
+            input.classList.add('elem');
+            input.classList.add(`r${(row % numRows) + 1}-c${(column % numColumns) + 1}`);
+            main.appendChild(input)
+        }
     }
 }
 
-const elements = document.querySelectorAll('.elem');
+createCells();
 
-for (let active = 0; active < 250; active++) {
-    let className = `r${Math.floor(Math.random() * numRows)}-c${Math.floor(Math.random() * numColumns)}`;
-    elements.forEach(elem => {
-        if (elem.classList.contains(className)) elem.setAttribute('checked', true);
-    })
+const checkRandomBoxes = () => {
+    const elements = document.querySelectorAll('.elem');
+    
+    for (let active = 0; active < 10; active++) {
+        let className = `r${Math.floor(Math.random() * numRows)}-c${Math.floor(Math.random() * numColumns)}`;
+        elements.forEach(elem => {
+            if (elem.classList.contains(className)) elem.checked = true;
+        })
+    }
 }
 
-const gridToIndex = (x, y) => x + (y * numColumns);
+checkRandomBoxes();
 
 const isAlive = (x, y) => {
-    if (x < 0 || x >= numColumns || y < 0 || y >= numRows) return false;
+    if (x < 1 || x >= numRows || y < 1 || y >= numColumns) return false;
     return document.querySelector(`.r${x}-c${y}`).checked ? 1 : 0;
 }
 
-for (let a = 0; a < numRows; a++) {
-    for (let b = 0; b < numColumns; b++) {
-        // Count the nearby population
-        let numAlive = isAlive(a - 1, b - 1) + isAlive(a, b - 1) + isAlive(a + 1, b - 1) + isAlive(a - 1, b) + isAlive(a + 1, b) + isAlive(a - 1, b + 1) + isAlive(a, b + 1) + isAlive(a + 1, b + 1);
-        let centerIndex = gridToIndex(a, b);
-        // Do nothing
-        if (numAlive == 2) document.querySelector(`.r${a}-c${b}`).checked = true;
-        // Make alive
-        else if (numAlive == 3) document.querySelector(`.r${a}-c${b}`).checked = true;
-        // Make dead
-        else document.querySelector(`.r${a}-c${b}`).checked = false;
+let numsAlive = [];
+
+const checkSurrounding = () => {
+    for (let a = 1; a < numRows; a++) {
+        for (let b = 1; b < numColumns; b++) {
+            // Count the nearby population
+            let numAlive = isAlive(a - 1, b - 1) + isAlive(a, b - 1) + isAlive(a + 1, b - 1) + isAlive(a - 1, b) + isAlive(a + 1, b) + isAlive(a - 1, b + 1) + isAlive(a, b + 1) + isAlive(a + 1, b + 1);
+            numsAlive.push(numAlive);
+        }
     }
 }
 
-// // Apply the new state to the cells
-// for (let i = 0; i < arr.length; i++) {
-//     arr[i].alive = arr[i].nextAlive;
-// }
+function checkArrContent() {
+    if (numsAlive.length > 0) {
+        const elements = document.querySelectorAll('.elem');
 
-// const gameLoop = () => {
-//     checkSurrounding();
+        numsAlive.map((alive, idx) => {
+            // Do nothing
+            if (alive == 2) elements[idx].checked = elements[idx].checked;
+            // Make alive
+            else if (alive == 3) elements[idx].checked = true;
+            // Make dead
+            else elements[idx].checked = false;
+        })
+    }
+}
 
-//     // The loop function has reached it's end, keep requesting new frames
-//     setTimeout( () => {
-//         window.requestAnimationFrame(() => gameLoop());
-//     }, 100)
-// }
+let intervalId;
+
+document.getElementById('play').addEventListener('click', () => {
+    intervalId = setInterval(() => {
+        window.requestAnimationFrame(() => {
+            checkSurrounding();
+            checkArrContent();
+            numsAlive = [];
+        })
+    }, 200);
+})
+
+document.getElementById('pause').addEventListener('click', () => {
+    clearInterval(intervalId);
+})
+
+document.getElementById('random').addEventListener('click', () => {
+    checkRandomBoxes();
+})
