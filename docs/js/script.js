@@ -36,22 +36,25 @@ const isAlive = (x, y) => {
 }
 
 let numsAlive = [];
+let centerCellAlive = [];
 
 const checkSurrounding = () => {
     for (let a = 1; a < numRows; a++) {
         for (let b = 1; b < numColumns; b++) {
             // Count the nearby population
             let numAlive = isAlive(a - 1, b - 1) + isAlive(a, b - 1) + isAlive(a + 1, b - 1) + isAlive(a - 1, b) + isAlive(a + 1, b) + isAlive(a - 1, b + 1) + isAlive(a, b + 1) + isAlive(a + 1, b + 1);
+            let centerCell = isAlive(a, b);
             numsAlive.push(numAlive);
+            centerCellAlive.push(centerCell);
         }
     }
 }
 
-function checkArrContent() {
-    if (numsAlive.length > 0) {
+function checkArrContent(stateArr) {
+    if (stateArr.length > 0) {
         const elements = document.querySelectorAll('.elem');
 
-        numsAlive.map((alive, idx) => {
+        stateArr.map((alive, idx) => {
             // Do nothing
             if (alive == 2) elements[idx].checked = elements[idx].checked;
             // Make alive
@@ -68,16 +71,53 @@ document.getElementById('play').addEventListener('click', () => {
     intervalId = setInterval(() => {
         window.requestAnimationFrame(() => {
             checkSurrounding();
-            checkArrContent();
+            checkArrContent(numsAlive);
             numsAlive = [];
         })
     }, 200);
+    document.getElementById('save').style.display = "none";
 })
 
 document.getElementById('pause').addEventListener('click', () => {
     clearInterval(intervalId);
+    intervalId = null;
+    document.getElementById('save').style.display = "block";
 })
 
 document.getElementById('random').addEventListener('click', () => {
     checkRandomBoxes();
+})
+
+document.getElementById('save').addEventListener('click', () => {
+    checkSurrounding();
+    checkArrContent(numsAlive);
+    console.log(numsAlive);
+
+    let dataArr = [];
+    let centerArr = [];
+
+    numsAlive.map(data => dataArr.push(data));
+    centerCellAlive.map(center => centerArr.push(center));
+
+    localStorage.removeItem("checkedElem");
+    localStorage.removeItem("checkedCenter");
+    localStorage.setItem("checkedElem", dataArr);
+    localStorage.setItem("checkedCenter", centerArr);
+
+    console.log(dataArr);
+})
+
+window.addEventListener('load', () => {
+    let savedData = localStorage.getItem("checkedElem");
+    let savedCenter = localStorage.getItem("checkedCenter");
+
+    savedData = savedData.split(',');
+    savedCenter = savedCenter.split(',');
+    console.log([...savedData]);
+    console.log([...savedCenter]);
+
+    document.getElementById('previous').addEventListener('click', () => {
+        checkArrContent(savedData);
+        checkArrContent(savedCenter);
+    })
 })
